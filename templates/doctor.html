@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% from "macros.html" import risk_table %}{% block title %}Doctor dashboard{% endblock %}
+{% block content %}
+<h1>Doctor Dashboard</h1>
+<form class="inline noprint" method="get"><label>Department<select name="department"><option value="">All departments</option>{% for d in departments %}<option {{ 'selected' if d==dept }}>{{ d }}</option>{% endfor %}</select></label><button>Apply</button></form><br>
+<div class="grid g5"><div class="card kpi"><div class="v">{{ inpatients|length }}</div><div class="l">Current inpatients</div></div>
+<div class="card kpi"><div class="v">{{ flagged|length }}</div><div class="l">With abnormal latest vitals</div></div>
+<div class="card kpi"><div class="v">{{ high|length }}</div><div class="l">High readmission risk</div></div></div>
+<div class="card scroll"><h2>High readmission risk {% if run_id %}<span class="muted" style="font-weight:400">(run <a href="{{ url_for('main.history_run', run_id=run_id) }}">{{ run_id }}</a>, {{ run_time }} UTC)</span>{% endif %}</h2>
+{% if high %}{{ risk_table(high) }}{% else %}<p class="muted">{{ 'No high-risk patients in this department.' if run_id else 'No scoring run yet - use the Prediction page.' }}</p>{% endif %}</div>
+<div class="card scroll"><h2>Current inpatients &amp; latest vitals</h2><table>
+<tr><th>Patient</th><th>Department</th><th>Diagnosis</th><th class="n">Day</th><th class="n">Temp</th><th class="n">BP</th><th class="n">Pulse</th><th class="n">Sugar</th><th>Flags</th></tr>
+{% for i in inpatients %}<tr><td><a href="{{ url_for('main.patient_detail', pid=i.patient_id) }}">{{ i.name }}</a></td><td>{{ i.department }}</td><td>{{ i.diagnosis }}</td><td class="n">{{ i.days }}</td>
+<td class="n">{{ i.temperature if i.temperature is not none else '-' }}</td><td class="n">{{ i.bp or '-' }}</td><td class="n">{{ i.pulse|int if i.pulse is not none else '-' }}</td><td class="n">{{ i.sugar|int if i.sugar is not none else '-' }}</td>
+<td>{% for f in i.flags %}<span class="flag">{{ f }}</span>{% endfor %}</td></tr>
+{% else %}<tr><td colspan="9" class="muted">No current inpatients.</td></tr>{% endfor %}</table>
+<p class="muted">Flags: temp &ge;38, pulse &gt;110 or &lt;50, systolic &ge;160 or &le;90, glucose &ge;180 or &le;70 (illustrative thresholds).</p></div>
+{% endblock %}

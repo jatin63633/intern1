@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}Upload{% endblock %}
+{% block content %}
+<h1>Data Upload</h1>
+<div class="grid g2"><div class="card"><h2>Upload CSV</h2>
+<form method="post" enctype="multipart/form-data" class="stack"><input type="hidden" name="_csrf" value="{{ csrf_token }}">
+<label>Dataset type<select name="kind">{% for k, (req, fmt) in kinds.items() %}<option value="{{ k }}">{{ k|capitalize }}</option>{% endfor %}</select></label>
+<label>CSV file (max 5&nbsp;MB, 20,000 rows)<input type="file" name="file" accept=".csv" required></label><button>Upload &amp; validate</button></form>
+{% if report %}<table style="margin-top:1rem"><tr><td>Rows in file</td><td class="n">{{ report.total }}</td></tr><tr><td>Imported</td><td class="n">{{ report.imported }}</td></tr><tr><td>Rejected</td><td class="n">{{ report.invalid }}</td></tr></table>
+{% if report.errors %}<p class="muted">First problems found:</p><ul>{% for e in report.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}{% endif %}</div>
+<div class="card"><h2>Expected columns</h2><table>{% for k, (req, fmt) in kinds.items() %}<tr><td><strong>{{ k }}</strong></td><td><code>{{ fmt }}</code></td></tr>{% endfor %}</table>
+<p class="muted">Dates are <code>YYYY-MM-DD</code>; vitals time is <code>YYYY-MM-DD HH:MM</code>; <code>bp</code> looks like <code>120/80</code>. Upload patients first, then admissions/vitals using the patient IDs. Each row is validated (age 0-120, plausible vitals, discharge not before admission); invalid rows are skipped and reported. Files are stored under a sanitised unique name. <code>sample_patients.csv</code> includes one bad row on purpose.</p></div></div>
+{% endblock %}

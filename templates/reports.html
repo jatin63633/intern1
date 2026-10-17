@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% from "macros.html" import filter_form, kpis, dept_table, risk_table %}{% block title %}Reports{% endblock %}
+{% block content %}
+<h1>Hospital Report</h1>
+{{ filter_form(departments, dept, start, end) }}
+<p class="noprint"><a class="btn sec" href="{{ url_for('main.reports_download', kind='departments', **request.args) }}">Departments CSV</a>
+<a class="btn sec" href="{{ url_for('main.reports_download', kind='diagnoses', **request.args) }}">Diagnoses CSV</a>
+<a class="btn sec" href="{{ url_for('main.reports_download', kind='risk') }}">Risk list CSV</a>
+<button onclick="window.print()">Print / Save as PDF</button></p>
+{{ kpis(summary) }}{{ dept_table(dept_stats) }}
+<div class="grid g2"><div class="card scroll"><h2>Diagnosis distribution</h2><table><tr><th>Diagnosis</th><th class="n">Admissions</th></tr>
+{% for l, v in zip(dx.labels, dx['values']) %}<tr><td>{{ l }}</td><td class="n">{{ v }}</td></tr>{% else %}<tr><td colspan="2" class="muted">No data.</td></tr>{% endfor %}</table></div>
+<div class="card"><h2>Average stay by department</h2><div style="height:260px"><canvas id="los_dept"></canvas></div></div></div>
+<div class="card scroll"><h2>Readmission-risk list (Medium &amp; High){% if run_id %} <span class="muted" style="font-weight:400">run {{ run_id }}</span>{% endif %}</h2>{{ risk_table(risk) }}</div>
+{% endblock %}
+{% block scripts %}<script>window.addEventListener("load",()=>loadAnalytics(["los_dept"]));</script>{% endblock %}

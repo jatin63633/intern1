@@ -1,0 +1,37 @@
+{% macro filter_form(departments, dept, start='', end='') %}
+<form class="inline noprint" method="get">
+  <label>Department<select name="department"><option value="">All departments</option>
+  {% for d in departments %}<option {{ 'selected' if d==dept }}>{{ d }}</option>{% endfor %}</select></label>
+  <label>Admitted from<input type="date" name="start" value="{{ start }}"></label>
+  <label>to<input type="date" name="end" value="{{ end }}"></label>
+  <button>Apply</button><a class="btn sec" href="?">Reset</a>
+</form>
+{% endmacro %}
+
+{% macro kpis(k) %}
+{% if k %}<div class="grid g5">
+  <div class="card kpi"><div class="v">{{ '{:,}'.format(k.patients) }}</div><div class="l">Patients</div></div>
+  <div class="card kpi"><div class="v">{{ '{:,}'.format(k.admissions) }}</div><div class="l">Admissions</div></div>
+  <div class="card kpi"><div class="v">{{ k.inpatients }}</div><div class="l">Currently admitted</div></div>
+  <div class="card kpi"><div class="v">{{ k.avg_los if k.avg_los is not none else '-' }}</div><div class="l">Average stay (days)</div></div>
+  <div class="card kpi"><div class="v">{{ (k.readmit_rate ~ '%') if k.readmit_rate is not none else '-' }}</div><div class="l">30-day readmission rate</div></div>
+</div>{% else %}<div class="card muted">No admissions match this selection. Register patients and record or upload admissions first.</div>{% endif %}
+{% endmacro %}
+
+{% macro dept_table(rows) %}
+<div class="card scroll"><h2>Department load</h2><table>
+<tr><th>Department</th><th class="n">Admissions</th><th class="n">Current inpatients</th><th class="n">Avg stay (days)</th><th class="n">Avg daily census</th><th class="n">30-day readmit %</th></tr>
+{% for r in rows %}<tr><td>{{ r.department }}</td><td class="n">{{ r.admissions }}</td><td class="n">{{ r.inpatients }}</td><td class="n">{{ r.avg_los if r.avg_los is not none else '-' }}</td><td class="n">{{ r.avg_census if r.avg_census is not none else '-' }}</td><td class="n">{{ r.readmit_rate if r.readmit_rate is not none else '-' }}</td></tr>
+{% else %}<tr><td colspan="6" class="muted">No data.</td></tr>{% endfor %}</table></div>
+{% endmacro %}
+
+{% macro risk_table(rows, link=true) %}
+<table><tr><th>Patient</th><th>Age</th><th>Department</th><th>Diagnosis</th><th>Status</th><th style="width:160px">Risk</th><th>Level</th></tr>
+{% for r in rows %}<tr>
+<td>{% if link %}<a href="{{ url_for('main.patient_detail', pid=r.patient_id) }}">{{ r.name }}</a>{% else %}{{ r.name }}{% endif %} <span class="muted">#{{ r.patient_id }}</span></td>
+<td>{{ r.age }}</td><td>{{ r.department }}</td><td>{{ r.diagnosis }}</td>
+<td>{{ 'Inpatient' if not r.discharge_date else 'Discharged ' ~ r.discharge_date }}</td>
+<td><div class="bar"><i class="risk-{{ r.risk_level }}" style="width:{{ (r.risk_score*100)|round|int }}%"></i></div> {{ '%.0f'|format(r.risk_score*100) }}%</td>
+<td><span class="pill risk-{{ r.risk_level }}">{{ r.risk_level }}</span></td></tr>
+{% else %}<tr><td colspan="7" class="muted">Nothing to show.</td></tr>{% endfor %}</table>
+{% endmacro %}

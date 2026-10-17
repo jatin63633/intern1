@@ -1,0 +1,6 @@
+Flask>=3.0
+pandas>=2.0
+numpy
+scikit-learn>=1.3
+joblib
+# optional: pip install xgboost   (used automatically as a 4th candidate model if present)

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="csrf" content="{{ csrf_token }}">
+<title>{% block title %}Hospital Analytics{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}" defer></script>
+</head><body>
+{% set ep = request.endpoint or '' %}
+<nav>
+  <span class="brand">&#10010; MediIQ</span>
+  {% if g.user %}
+  <a href="{{ url_for('main.dashboard') }}" class="{{ 'on' if ep=='main.dashboard' }}">Dashboard</a>
+  {% if g.user.role in ('admin','doctor') %}<a href="{{ url_for('main.doctor') }}" class="{{ 'on' if ep=='main.doctor' }}">Doctor</a>{% endif %}
+  <a href="{{ url_for('main.patients') }}" class="{{ 'on' if ep in ('main.patients','main.patient_detail') }}">Patients</a>
+  <a href="{{ url_for('main.upload') }}" class="{{ 'on' if ep=='main.upload' }}">Upload</a>
+  <a href="{{ url_for('main.analytics_page') }}" class="{{ 'on' if ep=='main.analytics_page' }}">Analytics</a>
+  <a href="{{ url_for('main.predict') }}" class="{{ 'on' if ep=='main.predict' }}">Prediction</a>
+  <a href="{{ url_for('main.history') }}" class="{{ 'on' if ep.startswith('main.history') }}">History</a>
+  <a href="{{ url_for('main.reports') }}" class="{{ 'on' if ep=='main.reports' }}">Reports</a>
+  {% if g.user.role=='admin' %}<a href="{{ url_for('auth.users') }}">Users</a>{% endif %}
+  <span class="sp"></span>
+  <span style="color:#fff;opacity:.85">{{ g.user.username }} ({{ g.user.role }})</span>
+  <a href="{{ url_for('auth.logout') }}">Logout</a>
+  {% endif %}
+</nav>
+<main>
+  {% for cat, msg in get_flashed_messages(with_categories=true) %}<div class="flash {{ cat }}">{{ msg }}</div>{% endfor %}
+  {% block content %}{% endblock %}
+</main>
+<footer>Academic decision-support prototype using synthetic data &mdash; not a clinical diagnostic system. Do not use it for real patient care decisions.</footer>
+{% block scripts %}{% endblock %}
+</body></html>

@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Users{% endblock %}{% block content %}
+<h1>User management</h1>
+<div class="card scroll"><table><tr><th>Username</th><th>Role</th><th></th></tr>
+{% for u in users %}<tr><td>{{ u.username }}</td><td colspan="2">
+<form class="inline" method="post"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><input type="hidden" name="user_id" value="{{ u.user_id }}">
+<select name="role">{% for r in roles %}<option {{ 'selected' if u.role==r }}>{{ r }}</option>{% endfor %}</select><button class="sm">Save</button></form></td></tr>{% endfor %}
+</table>
+<p class="muted"><strong>admin</strong>: everything incl. deleting records and managing users &middot; <strong>doctor</strong>: records + doctor dashboard + predictions &middot; <strong>staff</strong>: registration, data entry, analytics.</p></div>
+{% endblock %}

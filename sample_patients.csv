@@ -1,0 +1,4 @@
+name,age,gender,phone,blood_group
+Test Patient One,54,Male,9876543210,O+
+Test Patient Two,31,Female,9123456780,A-
+Bad Row,400,X,1,Z9

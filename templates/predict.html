@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% block title %}Prediction{% endblock %}
+{% block content %}
+<h1>Readmission Risk Prediction</h1>
+<div class="notice">Decision-support prototype trained on historical (synthetic) data. Scores estimate the chance of readmission within 30 days of discharge; they are not diagnoses and must not replace clinical judgement.</div>
+<div class="grid g2">
+<div class="card"><h2>1. Train &amp; compare models</h2>
+<p class="muted">Label: readmitted within 30 days. Features: age, gender, department, diagnosis, length of stay, prior admissions, days since last discharge and discharge vitals. Train/test split is by patient (no one appears in both). Numeric features are imputed and scaled, categories one-hot encoded. Logistic Regression, Random Forest, Gradient Boosting (and XGBoost if installed) are compared; the best F1 is saved.</p>
+{% if can_run %}<form method="post" action="{{ url_for('main.predict_train') }}"><input type="hidden" name="_csrf" value="{{ csrf_token }}"><button onclick="this.textContent='Training...'">Train models</button></form>
+{% else %}<p class="muted">Only doctors and admins can train or run predictions.</p>{% endif %}</div>
+<div class="card"><h2>2. Score patients</h2>
+{% if can_run %}<form class="inline" method="post" action="{{ url_for('main.predict_run') }}"><input type="hidden" name="_csrf" value="{{ csrf_token }}">
+<label>Include discharges from the last (days)<input type="number" name="window" value="30" min="1" max="365" style="width:6rem"></label><button {{ 'disabled' if not bundle }}>Score all current &amp; recent patients</button></form>
+<form class="inline" method="post" style="margin-top:.8rem" onsubmit="this.action='{{ url_for('main.predict_patient', pid=0) }}'.replace(/0$/, this.pid.value)">
+<input type="hidden" name="_csrf" value="{{ csrf_token }}"><label>Single patient<select name="pid">{% for p in patients %}<option value="{{ p.patient_id }}">#{{ p.patient_id }} {{ p.name }}</option>{% endfor %}</select></label><button {{ 'disabled' if not bundle }}>Predict</button></form>{% endif %}
+<p class="muted" style="margin-top:.8rem">Risk levels: High &ge; {{ (cfg.RISK_HIGH*100)|int }}%, Medium &ge; {{ (cfg.RISK_MEDIUM*100)|int }}%, otherwise Low.
+{% if run_id %}Latest run: <a href="{{ url_for('main.history_run', run_id=run_id) }}">{{ run_id }}</a>.{% endif %}</p></div></div>
+{% if bundle %}
+<div class="card scroll"><h2>Model comparison <span class="muted" style="font-weight:400">(hold-out test set: {{ bundle.n_test }} discharges; trained {{ bundle.trained_at }}; readmission rate {{ bundle.readmit_rate }}%)</span></h2>
+<table><tr><th>Model</th><th class="n">Accuracy</th><th class="n">Precision</th><th class="n">Recall</th><th class="n">F1</th><th class="n">ROC-AUC</th></tr>
+{% for m in bundle.comparison %}<tr class="{{ 'best' if m.best }}"><td>{{ m.model }}{{ ' (saved)' if m.best }}</td><td class="n">{{ m.accuracy }}</td><td class="n">{{ m.precision }}</td><td class="n">{{ m.recall }}</td><td class="n">{{ m.f1 }}</td><td class="n">{{ m.roc_auc }}</td></tr>{% endfor %}</table></div>
+<div class="grid g2"><div class="card"><h2>Confusion matrix &ndash; {{ bundle.name }}</h2>
+{% set cm = bundle.best.cm %}<div class="cm"><div class="h"></div><div class="h">Pred. no</div><div class="h">Pred. yes</div>
+<div class="h">Actual no</div><div>{{ cm[0][0] }}</div><div>{{ cm[0][1] }}</div><div class="h">Actual yes</div><div>{{ cm[1][0] }}</div><div>{{ cm[1][1] }}</div></div>
+<p class="muted">Recall = share of real readmissions caught; precision = share of flagged patients who were really readmitted. For a screening list, recall usually matters more, and models use balanced class weights for that reason.</p></div>
+<div class="card"><h2>Interpreting the metrics</h2><p>With only about {{ bundle.readmit_rate }}% of discharges readmitted, plain accuracy is misleading (a model that always says &ldquo;no&rdquo; scores high). F1 balances precision and recall, so it is used to choose the saved model; ROC-AUC shows how well scores rank high-risk above low-risk patients independent of the cut-off.</p></div></div>
+{% endif %}
+{% endblock %}

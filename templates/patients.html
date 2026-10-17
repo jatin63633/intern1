@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block title %}Patients{% endblock %}
+{% block content %}
+<h1>Patient Registration &amp; Records</h1>
+<div class="card"><h2>{{ 'Edit patient #' ~ edit.patient_id if edit else 'Register new patient' }}</h2>
+<form class="inline" method="post" action="{{ url_for('main.patient_save') }}"><input type="hidden" name="_csrf" value="{{ csrf_token }}">
+{% if edit %}<input type="hidden" name="patient_id" value="{{ edit.patient_id }}">{% endif %}
+<label>Full name<input name="name" required minlength="2" maxlength="80" value="{{ edit.name if edit }}"></label>
+<label>Age<input type="number" name="age" min="0" max="120" required style="width:5.5rem" value="{{ edit.age if edit }}"></label>
+<label>Gender<select name="gender">{% for x in genders %}<option {{ 'selected' if edit and edit.gender==x }}>{{ x }}</option>{% endfor %}</select></label>
+<label>Phone<input name="phone" value="{{ edit.phone if edit and edit.phone }}"></label>
+<label>Blood group<select name="blood_group">{% for x in blood %}<option {{ 'selected' if edit and edit.blood_group==x }}>{{ x }}</option>{% endfor %}</select></label>
+<button>{{ 'Update' if edit else 'Register' }}</button>{% if edit %}<a class="btn sec" href="{{ url_for('main.patients') }}">Cancel</a>{% endif %}</form></div>
+<div class="card scroll"><form class="inline" method="get" style="margin-bottom:.8rem"><label>Search name, phone or ID<input name="q" value="{{ q }}"></label><button>Search</button></form>
+<table><tr><th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th><th>Blood</th><th class="n">Admissions</th><th></th></tr>
+{% for p in patients %}<tr><td>{{ p.patient_id }}</td><td><a href="{{ url_for('main.patient_detail', pid=p.patient_id) }}">{{ p.name }}</a></td><td>{{ p.age }}</td><td>{{ p.gender }}</td><td>{{ p.phone or '' }}</td><td>{{ p.blood_group }}</td><td class="n">{{ p.n_adm }}</td>
+<td><a href="{{ url_for('main.patients', edit=p.patient_id) }}">Edit</a></td></tr>
+{% else %}<tr><td colspan="8" class="muted">No patients found.</td></tr>{% endfor %}</table>
+<p class="muted">Showing up to 200 records.</p></div>
+{% endblock %}

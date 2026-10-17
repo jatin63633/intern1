@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Register{% endblock %}{% block content %}
+<div class="card auth"><h1>Create account</h1>
+<form method="post" class="stack"><input type="hidden" name="_csrf" value="{{ csrf_token }}">
+<label>Username<input name="username" required pattern="[A-Za-z0-9_]{3,30}"></label>
+<label>Password (min 8 characters)<input type="password" name="password" minlength="8" required autocomplete="new-password"></label>
+<button>Create account</button></form>
+<p class="muted">New accounts get the limited <em>staff</em> role; an administrator can grant <em>doctor</em> access. The very first account becomes the administrator.</p>
+<p><a href="{{ url_for('auth.login') }}">Back to sign in</a></p></div>
+{% endblock %}

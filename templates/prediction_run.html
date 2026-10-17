@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% from "macros.html" import risk_table %}{% block title %}Risk list{% endblock %}
+{% block content %}
+{% set first = all_rows[0] %}
+<h1>Readmission-risk list</h1>
+<p class="muted">Run <code>{{ run_id }}</code> &middot; model <strong>{{ first.model_name }}</strong> &middot; {{ first.predicted_at }} UTC &middot;
+{{ all_rows|length }} patients: {{ all_rows|selectattr('risk_level','equalto','High')|list|length }} High, {{ all_rows|selectattr('risk_level','equalto','Medium')|list|length }} Medium</p>
+<form class="inline noprint" method="get"><label>Department<select name="department"><option value="">All</option>{% for d in departments %}<option {{ 'selected' if d==dept }}>{{ d }}</option>{% endfor %}</select></label><button>Filter</button></form><br>
+<div class="card scroll">{{ risk_table(rows) }}</div>
+{% endblock %}

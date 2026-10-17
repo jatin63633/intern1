@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}Prediction{% endblock %}
+{% block content %}
+<h1>Readmission risk &ndash; {{ p.name }}</h1>
+<div class="notice">Decision-support estimate only &mdash; not a diagnosis. Stored in history as run <code>{{ run_id }}</code> ({{ bundle.name }}).</div>
+<div class="grid g2"><div class="card"><h2>{{ row.diagnosis }} &middot; {{ row.department }}</h2>
+<p style="font-size:2rem;margin:.2rem 0"><strong>{{ '%.0f'|format(score*100) }}%</strong> <span class="pill risk-{{ level }}">{{ level }}</span></p>
+<div class="bar"><i class="risk-{{ level }}" style="width:{{ (score*100)|round|int }}%"></i></div>
+<p class="muted">Estimated chance of readmission within 30 days of discharge. Based on the {{ 'current stay so far' if not row.discharged else 'latest discharge' }}: stay {{ row.los|int }} d, {{ row.prior_adm_180|int }} admission(s) in the prior 180 days, age {{ p.age }}.</p></div>
+<div class="card"><h2>What is moving this score</h2>
+{% if drivers %}<table><tr><th>Factor</th><th class="n">Patient</th><th class="n">Typical</th><th class="n">Effect on risk</th></tr>
+{% for d in drivers %}<tr><td>{{ d.feature }}</td><td class="n">{{ d.value }}</td><td class="n">{{ d.typical }}</td><td class="n" style="color:{{ 'var(--danger)' if d.effect>0 else 'var(--ok)' }}">{{ '%+.1f'|format(d.effect) }} pts</td></tr>{% endfor %}</table>
+<p class="muted">Effect = how many percentage points the risk would change if that factor were at the typical (median) value. It describes the model, not causation.</p>{% else %}<p class="muted">No single numeric factor stands out.</p>{% endif %}</div></div>
+<a class="btn sec" href="{{ url_for('main.patient_detail', pid=p.patient_id) }}">Back to patient</a>
+{% endblock %}
